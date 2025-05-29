@@ -76,84 +76,95 @@
   </form>
 
   <script>
-    const gad7_questions = [
-      "感到紧张、焦虑或急切？",
-      "无法控制担忧？",
-      "对各种事情过度担忧？",
-      "难以放松下来？",
-      "坐立不安或容易烦躁？",
-      "容易生气或恼怒？",
-      "担心将会发生可怕的事情？"
-    ];
-    const phq9_questions = [
-      "对做事情提不起兴趣或乐趣？",
-      "感到情绪低落、沮丧或绝望？",
-      "入睡困难、易醒或睡得太多？",
-      "感到疲乏或没有活力？",
-      "食欲不振或吃得过多？",
-      "觉得自己很失败，或让自己或家人失望？",
-      "注意力难以集中，比如看报纸或看电视时？",
-      "动作或说话速度变慢、或坐立不安、动来动去？",
-      "有不如死了算了或自残的念头？"
-    ];
-    const options = [
-      "0 - 从未",
-      "1 - 几天",
-      "2 - 一半以上时间",
-      "3 - 几乎每天"
-    ];
+  const gad7_questions = [
+    "感到紧张、焦虑或急切？",
+    "无法控制担忧？",
+    "对各种事情过度担忧？",
+    "难以放松下来？",
+    "坐立不安或容易烦躁？",
+    "容易生气或恼怒？",
+    "担心将会发生可怕的事情？"
+  ];
+  const phq9_questions = [
+    "对做事情提不起兴趣或乐趣？",
+    "感到情绪低落、沮丧或绝望？",
+    "入睡困难、易醒或睡得太多？",
+    "感到疲乏或没有活力？",
+    "食欲不振或吃得过多？",
+    "觉得自己很失败，或让自己或家人失望？",
+    "注意力难以集中，比如看报纸或看电视时？",
+    "动作或说话速度变慢、或坐立不安、动来动去？",
+    "有不如死了算了或自残的念头？"
+  ];
+  const options = [
+    "0 - 从未",
+    "1 - 几天",
+    "2 - 一半以上时间",
+    "3 - 几乎每天"
+  ];
 
-    function createQuestionBlock(containerId, questions) {
-      const container = document.getElementById(containerId);
-      questions.forEach((q, i) => {
-        const label = document.createElement("label");
-        label.textContent = `${i + 1}. ${q}`;
-        const select = document.createElement("select");
-        select.name = containerId + "_q" + i;
-        options.forEach((opt, j) => {
-          const option = document.createElement("option");
-          option.value = j;
-          option.text = opt;
-          select.appendChild(option);
-        });
-        container.appendChild(label);
-        container.appendChild(select);
+  function createQuestionBlock(containerId, questions) {
+    const container = document.getElementById(containerId);
+    questions.forEach((q, i) => {
+      const label = document.createElement("label");
+      label.textContent = `${i + 1}. ${q}`;
+      const select = document.createElement("select");
+      select.name = containerId + "_q" + i;
+      options.forEach((opt, j) => {
+        const option = document.createElement("option");
+        option.value = j;
+        option.text = opt;
+        select.appendChild(option);
       });
+      container.appendChild(label);
+      container.appendChild(select);
+    });
+  }
+
+  function interpretGAD(score) {
+    if (score <= 4) return ["无或轻度焦虑", "情绪波动属于正常现象，注意日常放松。"];
+    if (score <= 9) return ["中度焦虑", "可能源于学习压力、人际关系或未来焦虑。"];
+    if (score <= 14) return ["中重度焦虑", "可能需要心理疏导或专业咨询。"];
+    return ["重度焦虑", "建议尽快寻求心理医生帮助，进行系统评估。"];
+  }
+
+  function interpretPHQ(score) {
+    if (score <= 4) return ["最小抑郁", "当前心情平稳，如偶有低落可通过休息缓解。"];
+    if (score <= 9) return ["轻度抑郁", "可能与压力、孤独感或失落事件有关。"];
+    if (score <= 14) return ["中度抑郁", "注意睡眠饮食与情绪管理，建议心理咨询。"];
+    if (score <= 19) return ["中重度抑郁", "需引起重视，可能影响生活和学习质量。"];
+    return ["重度抑郁", "建议尽快寻求专业心理或精神科医生的帮助。"];
+  }
+
+  function calculateScore() {
+    let gadScore = 0;
+    let phqScore = 0;
+
+    for (let i = 0; i < gad7_questions.length; i++) {
+      gadScore += parseInt(document.querySelector(`[name="gad7-questions_q${i}"]`).value);
+    }
+    for (let i = 0; i < phq9_questions.length; i++) {
+      phqScore += parseInt(document.querySelector(`[name="phq9-questions_q${i}"]`).value);
     }
 
-    function calculateScore() {
-      let gadScore = 0;
-      let phqScore = 0;
+    const [gadLevel, gadDesc] = interpretGAD(gadScore);
+    const [phqLevel, phqDesc] = interpretPHQ(phqScore);
 
-      for (let i = 0; i < gad7_questions.length; i++) {
-        gadScore += parseInt(document.querySelector(`[name="gad7-questions_q${i}"]`).value);
-      }
-      for (let i = 0; i < phq9_questions.length; i++) {
-        phqScore += parseInt(document.querySelector(`[name="phq9-questions_q${i}"]`).value);
-      }
+    const resultText = `
+      📊 <strong>GAD-7 焦虑量表：</strong><br>
+      总分：<strong>${gadScore}</strong>，等级：<strong>${gadLevel}</strong><br>
+      👉 说明：${gadDesc}<br><br>
 
-      let resultText = `GAD-7 总分：${gadScore}，${interpretGAD(gadScore)}\n`;
-      resultText += `PHQ-9 总分：${phqScore}，${interpretPHQ(phqScore)}`;
-      document.getElementById("scoreResult").innerText = resultText;
-    }
+      📊 <strong>PHQ-9 抑郁量表：</strong><br>
+      总分：<strong>${phqScore}</strong>，等级：<strong>${phqLevel}</strong><br>
+      👉 说明：${phqDesc}
+    `;
 
-    function interpretGAD(score) {
-      if (score <= 4) return "无或轻度焦虑";
-      if (score <= 9) return "中度焦虑";
-      if (score <= 14) return "中重度焦虑";
-      return "重度焦虑";
-    }
+    document.getElementById("scoreResult").innerHTML = resultText;
+  }
 
-    function interpretPHQ(score) {
-      if (score <= 4) return "最小抑郁";
-      if (score <= 9) return "轻度抑郁";
-      if (score <= 14) return "中度抑郁";
-      if (score <= 19) return "中重度抑郁";
-      return "重度抑郁";
-    }
-
-    createQuestionBlock("gad7-questions", gad7_questions);
-    createQuestionBlock("phq9-questions", phq9_questions);
+  createQuestionBlock("gad7-questions", gad7_questions);
+  createQuestionBlock("phq9-questions", phq9_questions);
   </script>
 </body>
 </html>
