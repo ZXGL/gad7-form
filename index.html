@@ -1,77 +1,160 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh">
 <head>
   <meta charset="UTF-8">
-  <title>GAD-7 焦虑自评量表</title>
+  <title>心理健康测评表（GAD-7 & PHQ-9）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }
-    h1 { text-align: center; }
-    .question { margin-bottom: 20px; }
-    .options label { display: block; margin-left: 20px; }
-    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    #result { margin-top: 30px; font-weight: bold; color: #007BFF; }
-    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f5f7fa;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #333;
+    }
+    .section {
+      background: white;
+      padding: 20px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    label {
+      display: block;
+      margin-top: 1rem;
+    }
+    select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 2rem;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .result {
+      margin-top: 1.5rem;
+      font-weight: bold;
+      color: #222;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>GAD-7 焦虑自评量表</h1>
-    <form id="gad7-form">
-      <div id="questions"></div>
-      <button type="submit">提交评估</button>
-    </form>
-    <div id="result"></div>
-  </div>
+  <h1>心理健康测评</h1>
+  <p style="text-align: center;">包含 GAD-7 焦虑量表 与 PHQ-9 抑郁量表</p>
+
+  <form id="testForm">
+    <div class="section">
+      <h2>GAD-7 焦虑量表</h2>
+      <p>请根据过去两周的感受，选择最符合你的选项：</p>
+      <div id="gad7-questions"></div>
+    </div>
+
+    <div class="section">
+      <h2>PHQ-9 抑郁量表</h2>
+      <p>请根据过去两周的感受，选择最符合你的选项：</p>
+      <div id="phq9-questions"></div>
+    </div>
+
+    <button type="button" onclick="calculateScore()">提交测评</button>
+    <div class="result" id="scoreResult"></div>
+  </form>
 
   <script>
-    const questions = [
-      "感到紧张、焦虑或烦躁？",
-      "难以控制担忧？",
-      "对各种事情过度担心？",
-      "放松困难？",
-      "不安到坐立难安？",
-      "容易烦躁或急躁？",
-      "感觉有些可怕的事情可能会发生？"
+    const gad7_questions = [
+      "感到紧张、焦虑或急切？",
+      "无法控制担忧？",
+      "对各种事情过度担忧？",
+      "难以放松下来？",
+      "坐立不安或容易烦躁？",
+      "容易生气或恼怒？",
+      "担心将会发生可怕的事情？"
     ];
-
+    const phq9_questions = [
+      "对做事情提不起兴趣或乐趣？",
+      "感到情绪低落、沮丧或绝望？",
+      "入睡困难、易醒或睡得太多？",
+      "感到疲乏或没有活力？",
+      "食欲不振或吃得过多？",
+      "觉得自己很失败，或让自己或家人失望？",
+      "注意力难以集中，比如看报纸或看电视时？",
+      "动作或说话速度变慢、或坐立不安、动来动去？",
+      "有不如死了算了或自残的念头？"
+    ];
     const options = [
-      { label: "从未", value: 0 },
-      { label: "有几天", value: 1 },
-      { label: "超过一周", value: 2 },
-      { label: "几乎每天", value: 3 }
+      "0 - 从未",
+      "1 - 几天",
+      "2 - 一半以上时间",
+      "3 - 几乎每天"
     ];
 
-    const container = document.getElementById("questions");
+    function createQuestionBlock(containerId, questions) {
+      const container = document.getElementById(containerId);
+      questions.forEach((q, i) => {
+        const label = document.createElement("label");
+        label.textContent = `${i + 1}. ${q}`;
+        const select = document.createElement("select");
+        select.name = containerId + "_q" + i;
+        options.forEach((opt, j) => {
+          const option = document.createElement("option");
+          option.value = j;
+          option.text = opt;
+          select.appendChild(option);
+        });
+        container.appendChild(label);
+        container.appendChild(select);
+      });
+    }
 
-    questions.forEach((q, index) => {
-      const div = document.createElement("div");
-      div.className = "question";
-      div.innerHTML = `<strong>${index + 1}. ${q}</strong>`;
-      const optionHtml = options.map(opt =>
-        `<label><input type="radio" name="q${index}" value="${opt.value}" required> ${opt.label}</label>`
-      ).join("");
-      div.innerHTML += `<div class="options">${optionHtml}</div>`;
-      container.appendChild(div);
-    });
+    function calculateScore() {
+      let gadScore = 0;
+      let phqScore = 0;
 
-    document.getElementById("gad7-form").onsubmit = function(event) {
-      event.preventDefault();
-      let score = 0;
-      for (let i = 0; i < questions.length; i++) {
-        const selected = document.querySelector(`input[name="q${i}"]:checked`);
-        if (selected) score += parseInt(selected.value);
+      for (let i = 0; i < gad7_questions.length; i++) {
+        gadScore += parseInt(document.querySelector(`[name="gad7-questions_q${i}"]`).value);
+      }
+      for (let i = 0; i < phq9_questions.length; i++) {
+        phqScore += parseInt(document.querySelector(`[name="phq9-questions_q${i}"]`).value);
       }
 
-      let level = "";
-      if (score <= 4) level = "无明显焦虑";
-      else if (score <= 9) level = "轻度焦虑";
-      else if (score <= 14) level = "中度焦虑";
-      else level = "重度焦虑";
+      let resultText = `GAD-7 总分：${gadScore}，${interpretGAD(gadScore)}\n`;
+      resultText += `PHQ-9 总分：${phqScore}，${interpretPHQ(phqScore)}`;
+      document.getElementById("scoreResult").innerText = resultText;
+    }
 
-      document.getElementById("result").innerHTML =
-        `您的总分为：<strong>${score}</strong>，属于 <strong>${level}</strong>。<br>
-        建议：如有不适，请及时与心理辅导老师或专业医生联系。`;
-    };
+    function interpretGAD(score) {
+      if (score <= 4) return "无或轻度焦虑";
+      if (score <= 9) return "中度焦虑";
+      if (score <= 14) return "中重度焦虑";
+      return "重度焦虑";
+    }
+
+    function interpretPHQ(score) {
+      if (score <= 4) return "最小抑郁";
+      if (score <= 9) return "轻度抑郁";
+      if (score <= 14) return "中度抑郁";
+      if (score <= 19) return "中重度抑郁";
+      return "重度抑郁";
+    }
+
+    createQuestionBlock("gad7-questions", gad7_questions);
+    createQuestionBlock("phq9-questions", phq9_questions);
   </script>
 </body>
 </html>
+
