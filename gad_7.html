@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>GAD-7 焦虑自评量表</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5; }
+    h1 { text-align: center; }
+    .question { margin-bottom: 20px; }
+    .options label { display: block; margin-left: 20px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 30px; font-weight: bold; color: #007BFF; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>GAD-7 焦虑自评量表</h1>
+    <form id="gad7-form">
+      <div id="questions"></div>
+      <button type="submit">提交评估</button>
+    </form>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questions = [
+      "感到紧张、焦虑或烦躁？",
+      "难以控制担忧？",
+      "对各种事情过度担心？",
+      "放松困难？",
+      "不安到坐立难安？",
+      "容易烦躁或急躁？",
+      "感觉有些可怕的事情可能会发生？"
+    ];
+
+    const options = [
+      { label: "从未", value: 0 },
+      { label: "有几天", value: 1 },
+      { label: "超过一周", value: 2 },
+      { label: "几乎每天", value: 3 }
+    ];
+
+    const container = document.getElementById("questions");
+
+    questions.forEach((q, index) => {
+      const div = document.createElement("div");
+      div.className = "question";
+      div.innerHTML = `<strong>${index + 1}. ${q}</strong>`;
+      const optionHtml = options.map(opt =>
+        `<label><input type="radio" name="q${index}" value="${opt.value}" required> ${opt.label}</label>`
+      ).join("");
+      div.innerHTML += `<div class="options">${optionHtml}</div>`;
+      container.appendChild(div);
+    });
+
+    document.getElementById("gad7-form").onsubmit = function(event) {
+      event.preventDefault();
+      let score = 0;
+      for (let i = 0; i < questions.length; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected) score += parseInt(selected.value);
+      }
+
+      let level = "";
+      if (score <= 4) level = "无明显焦虑";
+      else if (score <= 9) level = "轻度焦虑";
+      else if (score <= 14) level = "中度焦虑";
+      else level = "重度焦虑";
+
+      document.getElementById("result").innerHTML =
+        `您的总分为：<strong>${score}</strong>，属于 <strong>${level}</strong>。<br>
+        建议：如有不适，请及时与心理辅导老师或专业医生联系。`;
+    };
+  </script>
+</body>
+</html>
